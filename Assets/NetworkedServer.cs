@@ -73,7 +73,89 @@ public class NetworkedServer : MonoBehaviour
     private void ProcessRecievedMsg(string msg, int id)
     {
         Debug.Log("msg recieved = " + msg + ".  connection id = " + id);
+        string[] csv = msg.Split(',');
+        //catch signifier for differentiate the message type
+        int signifier = int.Parse(csv[0]);
+        //holding name during account create or login
+        string n = "";
+        //holding password during account create or login
+        string p = "";
+        //check the array length and then read the value
+        if (csv.Length > 1)
+            n = csv[1];
+        if (csv.Length > 2)
+        {
+            p = csv[2];
+        }
+        //flag for checking duplicate user during user creation
+        bool nameIsInUse = false;
+        //flag for chekcing valid user during login
+        bool validUser = false;
+        try
+        {
+            if (signifier == ClientToServerSignifiers.CreateAccount)
+            {
+                Debug.Log("create account signifier detect");
+                foreach (PlayerAccount pa in playerAccounts)
+                {
+                    if (pa.name == n)
+                    {
+                        nameIsInUse = true;
+                        break;
+                    }
+                }
+                if (nameIsInUse)
+                {
+                    SendMessageToClient(ServerToClientSignifiers.AccountCreationFailed + "," + n, id);
+                }
+                else
+                {
+                    PlayerAccount playerAccount = new PlayerAccount(id, n, p);
+                    playerAccounts.AddLast(playerAccount);
+                    Debug.Log("create success");
+                    SendMessageToClient(ServerToClientSignifiers.AccountCreationComplete + "," + n, id);
+                    SavePlayerManagementFile();
+                }
+            }
+            else if (signifier == ClientToServerSignifiers.Login)
+            {
+                Debug.Log("login signifier detect");
+
+                foreach (PlayerAccount pa in playerAccounts)
+                {
+                    if (pa.name == n && pa.password == p)
+                    {
+                        validUser = true;
+                        Debug.Log("login success");
+                        break;
+                    }
+                }
+                if (validUser)
+                {
+                    SendMessageToClient(ServerToClientSignifiers.LoginComplete + "," + n, id);
+                }
+                else
+                {
+                    SendMessageToClient(ServerToClientSignifiers.LoginFailed + "," + n, id);
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Debug.Log("error" + ex.Message);
+        }
     }
+    public void SavePlayerManagementFile()
+    {
+        StreamWriter sw = new StreamWriter(Application.dataPath + Path.DirectorySeparatorChar + "PlayerManagementFile.txt");
+        foreach (PlayerAccount pa in playerAccounts)
+        {
+            sw.WriteLine(PlayerAccount.PlayerIDSinifier + "," + pa.id + "," + pa.name + "," + pa.password);
+        }
+        sw.Close();
+    }
+
     public void LoadPlayerManagementFile()
     {
         if (File.Exists(Application.dataPath + Path.DirectorySeparatorChar + "PlayerManagementFile.txt"))
