@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.IO;
 using UnityEngine.UI;
+using System;
 
 public class NetworkedServer : MonoBehaviour
 {
@@ -13,6 +14,8 @@ public class NetworkedServer : MonoBehaviour
     int unreliableChannelID;
     int hostID;
     int socketPort = 5491;
+
+    LinkedList<PlayerAccount> playerAccounts;
 
     // Start is called before the first frame update
     void Start()
@@ -68,6 +71,21 @@ public class NetworkedServer : MonoBehaviour
     private void ProcessRecievedMsg(string msg, int id)
     {
         Debug.Log("msg recieved = " + msg + ".  connection id = " + id);
+    }
+
+}
+
+public class PlayerAccount
+{
+    public const int PlayerIDSinifier = 1;
+    public string name, password;
+    public int id;
+
+    public PlayerAccount(int i, string n, string p)
+    {
+        id = i;
+        name = n;
+        password = p;
     }
 
 }
