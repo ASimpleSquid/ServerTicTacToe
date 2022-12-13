@@ -108,14 +108,14 @@ public class NetworkedServer : MonoBehaviour
                 }
                 if (nameIsInUse)
                 {
-                    SendMessageToClient(ServerToClientSignifiers.AccountCreationFailed + "," + n, id);
+                    SendMessageToClient((int)ServerToClientSignifiers.AccountCreationFailed + "," + n, id);
                 }
                 else
                 {
                     PlayerAccount playerAccount = new PlayerAccount(id, n, p);
                     playerAccounts.AddLast(playerAccount);
                     Debug.Log("create success");
-                    SendMessageToClient(ServerToClientSignifiers.AccountCreationComplete + "," + n, id);
+                    SendMessageToClient((int)ServerToClientSignifiers.AccountCreationComplete + "," + n, id);
                     SavePlayerManagementFile();
                 }
             }
@@ -134,11 +134,11 @@ public class NetworkedServer : MonoBehaviour
                 }
                 if (validUser)
                 {
-                    SendMessageToClient(ServerToClientSignifiers.LoginComplete + "," + n, id);
+                    SendMessageToClient((int)ServerToClientSignifiers.LoginComplete + "," + n, id);
                 }
                 else
                 {
-                    SendMessageToClient(ServerToClientSignifiers.LoginFailed + "," + n, id);
+                    SendMessageToClient((int)ServerToClientSignifiers.LoginFailed + "," + n, id);
                 }
             }
             else if ((ClientToServerSignifiers)signifier == ClientToServerSignifiers.JoinChatRoomQueue)
@@ -166,14 +166,14 @@ public class NetworkedServer : MonoBehaviour
                     {
                         chatterWaitingIDN2 = csv[1];
                         AppendLogFile(csv[1] + ":player join in game room from connection " + id);
-                        SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], id);
-                        SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID);
+                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], id);
+                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID);
                     }
                     else
                     {
                         AppendLogFile("player join in game room from connection " + id);
-                        SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id, id);
-                        SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id, chatterWaitingID);
+                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id, id);
+                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id, chatterWaitingID);
                     }
                 }
                 else
@@ -186,12 +186,12 @@ public class NetworkedServer : MonoBehaviour
                     chatRooms.AddLast(gr);
                     AppendLogFile(csv[1] + ":player join in game room from connection " + id);
                     AppendLogFile("start game with players(connection_id:name) " + gr.getChatters());
-                    SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], id);
-                    SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID);
-                    SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID2);
-                    SendMessageToClient(ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player1.id);
-                    SendMessageToClient(ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player2.id);
-                    SendMessageToClient(ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player3.id);
+                    SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], id);
+                    SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID);
+                    SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID2);
+                    SendMessageToClient((int)ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player1.id);
+                    SendMessageToClient((int)ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player2.id);
+                    SendMessageToClient((int)ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player3.id);
                     chatterWaitingID = -1;
                     chatterWaitingID2 = -1;
                     chatterWaitingIDN = "";
