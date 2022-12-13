@@ -16,6 +16,13 @@ public class NetworkedServer : MonoBehaviour
     int socketPort = 5491;
 
     LinkedList<PlayerAccount> playerAccounts;
+    #region chat room variable
+    int chatterWaitingID = -1;
+    string chatterWaitingIDN = "";
+    int chatterWaitingID2 = -1;
+    string chatterWaitingIDN2 = "";
+    LinkedList<ChatRoom> chatRooms;
+    #endregion
 
     // Start is called before the first frame update
     void Start()
@@ -28,6 +35,7 @@ public class NetworkedServer : MonoBehaviour
         hostID = NetworkTransport.AddHost(topology, socketPort, null);
         playerAccounts = new LinkedList<PlayerAccount>();
         LoadPlayerManagementFile();
+        chatRooms = new LinkedList<ChatRoom>();
 
     }
 
@@ -74,26 +82,20 @@ public class NetworkedServer : MonoBehaviour
     {
         Debug.Log("msg recieved = " + msg + ".  connection id = " + id);
         string[] csv = msg.Split(',');
-        //catch signifier for differentiate the message type
         int signifier = int.Parse(csv[0]);
-        //holding name during account create or login
         string n = "";
-        //holding password during account create or login
         string p = "";
-        //check the array length and then read the value
         if (csv.Length > 1)
             n = csv[1];
         if (csv.Length > 2)
         {
             p = csv[2];
         }
-        //flag for checking duplicate user during user creation
         bool nameIsInUse = false;
-        //flag for chekcing valid user during login
         bool validUser = false;
         try
         {
-            if (signifier == ClientToServerSignifiers.CreateAccount)
+            if ((ClientToServerSignifiers)signifier == ClientToServerSignifiers.CreateAccount)
             {
                 Debug.Log("create account signifier detect");
                 foreach (PlayerAccount pa in playerAccounts)
@@ -117,7 +119,7 @@ public class NetworkedServer : MonoBehaviour
                     SavePlayerManagementFile();
                 }
             }
-            else if (signifier == ClientToServerSignifiers.Login)
+            else if ((ClientToServerSignifiers)signifier == ClientToServerSignifiers.Login)
             {
                 Debug.Log("login signifier detect");
 
@@ -174,17 +176,23 @@ public class NetworkedServer : MonoBehaviour
             }
         }
     }
-    public static class ClientToServerSignifiers
+    public enum ClientToServerSignifiers
     {
-        public const int CreateAccount = 1;
-        public const int Login = 2;
+        CreateAccount,
+        Login,
+        JoinChatRoomQueue,
+        SendMessage,
+        SendClientMessage
     }
-    public static class ServerToClientSignifiers
+    public enum ServerToClientSignifiers
     {
-        public const int LoginComplete = 1;
-        public const int LoginFailed = 2;
-        public const int AccountCreationComplete = 3;
-        public const int AccountCreationFailed = 4;
+        LoginComplete,
+        LoginFailed,
+        AccountCreationComplete,
+        AccountCreationFailed,
+        ChatStart,
+        RecievedMessage,
+        RecievedClientMessage
     }
     public class PlayerAccount
     {
@@ -199,6 +207,19 @@ public class NetworkedServer : MonoBehaviour
         }
 
     }
+    public class ChatRoom
+    {
+        public PlayerAccount Player1, Player2, Player3;
+        public string getChatters()
+        {
+            string p = "";
+            p += "," + Player1.id + ":" + Player1.name;
+            p += "," + Player2.id + ":" + Player2.name;
+            p += "," + Player3.id + ":" + Player3.name;
+            return p;
+        }
+    }
+
 }
 
 
