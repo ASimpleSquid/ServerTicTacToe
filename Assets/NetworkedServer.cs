@@ -141,7 +141,63 @@ public class NetworkedServer : MonoBehaviour
                     SendMessageToClient(ServerToClientSignifiers.LoginFailed + "," + n, id);
                 }
             }
-
+            else if ((ClientToServerSignifiers)signifier == ClientToServerSignifiers.JoinChatRoomQueue)
+            {
+                Debug.Log("join chat room queue signifier detect");
+                if (chatterWaitingID == -1)
+                {
+                    chatterWaitingID = id;
+                    if (csv.Length > 1)
+                    {
+                        chatterWaitingIDN = csv[1];
+                        AppendLogFile(csv[1] + ":player join in game room from connection " + id);
+                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], id);
+                    }
+                    else
+                    {
+                        AppendLogFile("player join in game room from connection " + id);
+                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id, id);
+                    }
+                }
+                else if (chatterWaitingID2 == -1)
+                {
+                    chatterWaitingID2 = id;
+                    if (csv.Length > 1)
+                    {
+                        chatterWaitingIDN2 = csv[1];
+                        AppendLogFile(csv[1] + ":player join in game room from connection " + id);
+                        SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], id);
+                        SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID);
+                    }
+                    else
+                    {
+                        AppendLogFile("player join in game room from connection " + id);
+                        SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id, id);
+                        SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id, chatterWaitingID);
+                    }
+                }
+                else
+                {
+                    Debug.Log("Creating chat room now.");
+                    ChatRoom gr = new ChatRoom();
+                    gr.Player1 = new PlayerAccount(chatterWaitingID, chatterWaitingIDN, "");
+                    gr.Player2 = new PlayerAccount(chatterWaitingID2, chatterWaitingIDN2, "");
+                    gr.Player3 = new PlayerAccount(id, csv[1], "");
+                    chatRooms.AddLast(gr);
+                    AppendLogFile(csv[1] + ":player join in game room from connection " + id);
+                    AppendLogFile("start game with players(connection_id:name) " + gr.getChatters());
+                    SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], id);
+                    SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID);
+                    SendMessageToClient(ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID2);
+                    SendMessageToClient(ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player1.id);
+                    SendMessageToClient(ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player2.id);
+                    SendMessageToClient(ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player3.id);
+                    chatterWaitingID = -1;
+                    chatterWaitingID2 = -1;
+                    chatterWaitingIDN = "";
+                    chatterWaitingIDN2 = "";
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -176,6 +232,14 @@ public class NetworkedServer : MonoBehaviour
             }
         }
     }
+    public void AppendLogFile(string line)
+    {
+        StreamWriter sw = new StreamWriter(Application.dataPath + Path.DirectorySeparatorChar + "Log.txt", true);
+
+        sw.WriteLine(System.DateTime.Now.ToString("yyyyMMdd HHmmss") + ": " + line);
+
+        sw.Close();
+    }
     public enum ClientToServerSignifiers
     {
         CreateAccount,
@@ -192,7 +256,8 @@ public class NetworkedServer : MonoBehaviour
         AccountCreationFailed,
         ChatStart,
         RecievedMessage,
-        RecievedClientMessage
+        RecievedClientMessage,
+        JoinedPlay
     }
     public class PlayerAccount
     {
