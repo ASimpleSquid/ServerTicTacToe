@@ -240,6 +240,17 @@ public class NetworkedServer : MonoBehaviour
 
         sw.Close();
     }
+    public ChatRoom GetChatRoomClientId(int playerId)
+    {
+        foreach (ChatRoom gr in chatRooms)
+        {
+            if (gr.Player1.id == playerId || gr.Player2.id == playerId || gr.Player3.id == playerId)
+            {
+                return gr;
+            }
+        }
+        return null;
+    }
     public enum ClientToServerSignifiers
     {
         CreateAccount,
