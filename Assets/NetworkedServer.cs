@@ -253,7 +253,7 @@ public class NetworkedServer : MonoBehaviour
     }
     public enum ClientToServerSignifiers
     {
-        CreateAccount,
+        CreateAccount = 1,
         Login,
         JoinChatRoomQueue,
         SendMessage,
@@ -261,7 +261,7 @@ public class NetworkedServer : MonoBehaviour
     }
     public enum ServerToClientSignifiers
     {
-        LoginComplete,
+        LoginComplete = 1,
         LoginFailed,
         AccountCreationComplete,
         AccountCreationFailed,
