@@ -22,6 +22,7 @@ public class NetworkedServer : MonoBehaviour
     int chatterWaitingID2 = -1;
     string chatterWaitingIDN2 = "";
     #endregion
+    TicTacToe ticTacToe = new TicTacToe();
 
     // Start is called before the first frame update
     void Start()
@@ -143,8 +144,30 @@ public class NetworkedServer : MonoBehaviour
             {
                 foreach (PlayerAccount P in playerAccounts)
                 {
-                    //Debug.Log($"Relay Message to player ID : {P.id}");
                     SendMessageToClient($"{(int)ServerToClientSignifiers.RecievedMessage},{csv[1]},{csv[2]}", P.id);
+                }
+            }
+            else if ((ClientToServerSignifiers)signifier == ClientToServerSignifiers.PlayerAttemptJoin)
+            {
+                foreach (PlayerAccount pa in playerAccounts)
+                {
+                    if (pa.id != id) continue;
+                    char joinResults = ticTacToe.JoinGame(pa);
+                    if (joinResults == 'f')SendMessageToClient($"{(int)ServerToClientSignifiers.JoinFail}", id);
+                    else SendMessageToClient($"{(int)ServerToClientSignifiers.JoinSuccess}, {joinResults}", id);
+                    break;
+                }
+            }
+            else if ((ClientToServerSignifiers)signifier == ClientToServerSignifiers.GameMove)
+            {
+                int moveResult = ticTacToe.AttemptMove(Int32.Parse(csv[1]), id);
+                if(moveResult == TicTacToe.turnSuccess)
+                {
+                    PlayerAccount[] players = new PlayerAccount[] { ticTacToe.playerX, ticTacToe.playerO };
+                    foreach (PlayerAccount player in players)
+                    {
+                        SendMessageToClient($"{(int)ServerToClientSignifiers.GameUpdate}, {ticTacToe.gameState}, {ticTacToe.turn}", player.id);
+                    }
                 }
             }
         }
@@ -205,7 +228,10 @@ public class NetworkedServer : MonoBehaviour
         LoginFailed,
         AccountCreationComplete,
         AccountCreationFailed,
-        RecievedMessage
+        RecievedMessage,
+        JoinSuccess,
+        JoinFail,
+        GameUpdate
     }
     public class PlayerAccount
     {
@@ -222,9 +248,11 @@ public class NetworkedServer : MonoBehaviour
     }
     public class TicTacToe
     {
-        const int outOfTurnError = 1;
-        const int turnSuccess = 0;
-        string gameState = ".........";
+        public const int gameVacantError = 3;
+        public const int posOccupied = 2;
+        public const int outOfTurnError = 1;
+        public const int turnSuccess = 0;
+        public string gameState = ".........";
 
         static readonly int[][] winningCombos = new int[][]
         {
@@ -238,28 +266,57 @@ public class NetworkedServer : MonoBehaviour
                 new int [] {2, 4, 6}
         };
 
-        char turn = 'x';
-        PlayerAccount playerX;
-        PlayerAccount playerO;
+        public char turn = 'x';
+        public PlayerAccount? playerX;
+        public PlayerAccount? playerO;
 
         public int AttemptMove(int pos, int id)
         {
+            if (playerX is null || playerO is null) return gameVacantError;
             if (turn == 'x' && id != playerX.id || turn == 'o' && id != playerO.id) return outOfTurnError;
+            if (gameState[pos] != '.') return posOccupied;
             char[] gameStateArr = gameState.ToCharArray();
             gameStateArr[pos] = turn;
             gameState = new String(gameStateArr);
+            char state = CheckState();
+            if (state == '_') turn = (turn == 'x') ? 'o' : 'x';
+            else turn = state;
             return turnSuccess;
         }
-        public void ChekcState()
+        public char CheckState()
         {
             foreach (int[] wc in winningCombos)
             {
                 char c = gameState[wc[0]];
                 if (c != 'x' && c != 'o') continue;
-
+                if (gameState[wc[1]] == c && gameState[wc[2]] == c) return char.ToUpper(c);
             }
 
+            if (!gameState.Contains(".")) return 'S';
             return '_';
+        }
+
+        public char JoinGame(PlayerAccount player)
+        {
+            if (playerX is not null && playerO is not null) return 'f';
+            if (playerX is null)
+            {
+                playerX = player;
+                return 'x';
+            }
+                playerO = player;
+                return 'o';
+        }
+        public void LeaveGame(int id)
+        {
+            if(playerX.id == id)
+            {
+                playerX = null;
+            }
+            if(playerO.id == id)
+            {
+                playerO = null;
+            }
         }
     }
 
