@@ -21,7 +21,6 @@ public class NetworkedServer : MonoBehaviour
     string chatterWaitingIDN = "";
     int chatterWaitingID2 = -1;
     string chatterWaitingIDN2 = "";
-    LinkedList<ChatRoom> chatRooms;
     #endregion
 
     // Start is called before the first frame update
@@ -35,7 +34,6 @@ public class NetworkedServer : MonoBehaviour
         hostID = NetworkTransport.AddHost(topology, socketPort, null);
         playerAccounts = new LinkedList<PlayerAccount>();
         LoadPlayerManagementFile();
-        chatRooms = new LinkedList<ChatRoom>();
 
     }
 
@@ -54,7 +52,7 @@ public class NetworkedServer : MonoBehaviour
         NetworkEventType recNetworkEvent = NetworkTransport.Receive(out recHostID, out recConnectionID, out recChannelID, recBuffer, bufferSize, out dataSize, out error);
 
         switch (recNetworkEvent)
-        {
+        { 
             case NetworkEventType.Nothing:
                 break;
             case NetworkEventType.ConnectEvent:
@@ -141,63 +139,6 @@ public class NetworkedServer : MonoBehaviour
                     SendMessageToClient((int)ServerToClientSignifiers.LoginFailed + "," + n, id);
                 }
             }
-            else if ((ClientToServerSignifiers)signifier == ClientToServerSignifiers.JoinChatRoomQueue)
-            {
-                Debug.Log("join chat room queue signifier detect");
-                if (chatterWaitingID == -1)
-                {
-                    chatterWaitingID = id;
-                    if (csv.Length > 1)
-                    {
-                        chatterWaitingIDN = csv[1];
-                        AppendLogFile(csv[1] + ":player join in game room from connection " + id);
-                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], id);
-                    }
-                    else
-                    {
-                        AppendLogFile("player join in game room from connection " + id);
-                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id, id);
-                    }
-                }
-                else if (chatterWaitingID2 == -1)
-                {
-                    chatterWaitingID2 = id;
-                    if (csv.Length > 1)
-                    {
-                        chatterWaitingIDN2 = csv[1];
-                        AppendLogFile(csv[1] + ":player join in game room from connection " + id);
-                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], id);
-                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID);
-                    }
-                    else
-                    {
-                        AppendLogFile("player join in game room from connection " + id);
-                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id, id);
-                        SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id, chatterWaitingID);
-                    }
-                }
-                else
-                {
-                    Debug.Log("Creating chat room now.");
-                    ChatRoom gr = new ChatRoom();
-                    gr.Player1 = new PlayerAccount(chatterWaitingID, chatterWaitingIDN, "");
-                    gr.Player2 = new PlayerAccount(chatterWaitingID2, chatterWaitingIDN2, "");
-                    gr.Player3 = new PlayerAccount(id, csv[1], "");
-                    chatRooms.AddLast(gr);
-                    AppendLogFile(csv[1] + ":player join in game room from connection " + id);
-                    AppendLogFile("start game with players(connection_id:name) " + gr.getChatters());
-                    SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], id);
-                    SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID);
-                    SendMessageToClient((int)ServerToClientSignifiers.JoinedPlay + "," + id + "," + csv[1], chatterWaitingID2);
-                    SendMessageToClient((int)ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player1.id);
-                    SendMessageToClient((int)ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player2.id);
-                    SendMessageToClient((int)ServerToClientSignifiers.ChatStart + gr.getChatters(), gr.Player3.id);
-                    chatterWaitingID = -1;
-                    chatterWaitingID2 = -1;
-                    chatterWaitingIDN = "";
-                    chatterWaitingIDN2 = "";
-                }
-            }
         }
         catch (Exception ex)
         {
@@ -240,17 +181,6 @@ public class NetworkedServer : MonoBehaviour
 
         sw.Close();
     }
-    public ChatRoom GetChatRoomClientId(int playerId)
-    {
-        foreach (ChatRoom gr in chatRooms)
-        {
-            if (gr.Player1.id == playerId || gr.Player2.id == playerId || gr.Player3.id == playerId)
-            {
-                return gr;
-            }
-        }
-        return null;
-    }
     public enum ClientToServerSignifiers
     {
         CreateAccount = 1,
@@ -282,18 +212,6 @@ public class NetworkedServer : MonoBehaviour
             password = p;
         }
 
-    }
-    public class ChatRoom
-    {
-        public PlayerAccount Player1, Player2, Player3;
-        public string getChatters()
-        {
-            string p = "";
-            p += "," + Player1.id + ":" + Player1.name;
-            p += "," + Player2.id + ":" + Player2.name;
-            p += "," + Player3.id + ":" + Player3.name;
-            return p;
-        }
     }
 
 }
