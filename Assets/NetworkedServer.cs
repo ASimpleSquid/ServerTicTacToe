@@ -143,6 +143,7 @@ public class NetworkedServer : MonoBehaviour
             {
                 foreach (PlayerAccount P in playerAccounts)
                 {
+                    Debug.Log($"Relay Message to player ID : {P.id}");
                     SendMessageToClient($"{(int)ServerToClientSignifiers.RecievedMessage},{csv[1]},{csv[2]}", P.id);
                 }
             }

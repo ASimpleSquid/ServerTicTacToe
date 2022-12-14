@@ -2,3 +2,8 @@
 1,2,Wazzup,Hey
 1,4,Wha,Now
 1,6,Now,Cry
+1,2,Blech,Raisans
+1,4,No,Pylons
+1,2,Lets,Play
+1,6,letmein,LETMEIN
+1,2,HaveYouMet,Ted
