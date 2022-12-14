@@ -301,7 +301,7 @@ public class NetworkedServer : MonoBehaviour
 
         public char JoinGame(PlayerAccount player)
         {
-            if (playerX is not null && playerO is not null) return 'f';
+            if (playerX != null && playerO != null) return 'f';
             if (playerX is null)
             {
                 playerX = player;
