@@ -139,6 +139,13 @@ public class NetworkedServer : MonoBehaviour
                     SendMessageToClient((int)ServerToClientSignifiers.LoginFailed + "," + n, id);
                 }
             }
+            else if((ClientToServerSignifiers)signifier == ClientToServerSignifiers.SendMessage)
+            {
+                foreach (PlayerAccount P in playerAccounts)
+                {
+                    SendMessageToClient($"{(int)ServerToClientSignifiers.RecievedMessage},{csv[1]},{csv[2]}", P.id);
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -185,9 +192,7 @@ public class NetworkedServer : MonoBehaviour
     {
         CreateAccount = 1,
         Login,
-        JoinChatRoomQueue,
-        SendMessage,
-        SendClientMessage
+        SendMessage
     }
     public enum ServerToClientSignifiers
     {
@@ -195,10 +200,7 @@ public class NetworkedServer : MonoBehaviour
         LoginFailed,
         AccountCreationComplete,
         AccountCreationFailed,
-        ChatStart,
-        RecievedMessage,
-        RecievedClientMessage,
-        JoinedPlay
+        RecievedMessage
     }
     public class PlayerAccount
     {
