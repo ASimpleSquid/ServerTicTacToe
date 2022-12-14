@@ -143,7 +143,7 @@ public class NetworkedServer : MonoBehaviour
             {
                 foreach (PlayerAccount P in playerAccounts)
                 {
-                    Debug.Log($"Relay Message to player ID : {P.id}");
+                    //Debug.Log($"Relay Message to player ID : {P.id}");
                     SendMessageToClient($"{(int)ServerToClientSignifiers.RecievedMessage},{csv[1]},{csv[2]}", P.id);
                 }
             }
@@ -193,7 +193,11 @@ public class NetworkedServer : MonoBehaviour
     {
         CreateAccount = 1,
         Login,
-        SendMessage
+        SendMessage,
+        PlayerAttemptJoin,
+        ObserverJoin,
+        LeaveGame,
+        GameMove
     }
     public enum ServerToClientSignifiers
     {
@@ -215,6 +219,48 @@ public class NetworkedServer : MonoBehaviour
             password = p;
         }
 
+    }
+    public class TicTacToe
+    {
+        const int outOfTurnError = 1;
+        const int turnSuccess = 0;
+        string gameState = ".........";
+
+        static readonly int[][] winningCombos = new int[][]
+        {
+                new int [] {0, 1, 2},
+                new int [] {3, 4, 5},
+                new int [] {6, 7, 8},
+                new int [] {0, 3, 6},
+                new int [] {1, 4, 7},
+                new int [] {2, 5, 8},
+                new int [] {0, 4, 8},
+                new int [] {2, 4, 6}
+        };
+
+        char turn = 'x';
+        PlayerAccount playerX;
+        PlayerAccount playerO;
+
+        public int AttemptMove(int pos, int id)
+        {
+            if (turn == 'x' && id != playerX.id || turn == 'o' && id != playerO.id) return outOfTurnError;
+            char[] gameStateArr = gameState.ToCharArray();
+            gameStateArr[pos] = turn;
+            gameState = new String(gameStateArr);
+            return turnSuccess;
+        }
+        public void ChekcState()
+        {
+            foreach (int[] wc in winningCombos)
+            {
+                char c = gameState[wc[0]];
+                if (c != 'x' && c != 'o') continue;
+
+            }
+
+            return '_';
+        }
     }
 
 }
